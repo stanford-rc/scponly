@@ -1,0 +1,87 @@
+diff -ru scponly-3aab916d89e5f8ead09367b916b7b2070d6fb7d3/config.h.in scponly-patched/config.h.in
+--- scponly-3aab916d89e5f8ead09367b916b7b2070d6fb7d3/config.h.in	2011-12-12 21:44:31.000000000 -0800
++++ scponly-patched/config.h.in	2016-02-23 18:10:55.808687424 -0800
+@@ -14,6 +14,7 @@
+ #undef PASSWD_COMPAT 
+ #undef ENABLE_SCP2
+ #undef ENABLE_SFTP
++#undef ENABLE_BBCP
+ #undef SVNSERV_COMPAT
+ #undef ENABLE_WILDCARDS
+ #undef RESTRICTIVE_FILENAMES
+@@ -51,6 +52,11 @@
+ #define PROG_CD "cd"
+ #endif /*ENABLE_SCP2*/
+ 
++#ifdef ENABLE_BBCP
++#undef PROG_BBCP
++#undef PROG_PS
++#endif /*ENABLE_BBCP*/
++
+ /* Binaries launched in WinSCP compatibility mode */
+ #ifdef WINSCP_COMPAT
+ #undef PROG_PWD
+Only in scponly-patched/: config.h.in.orig
+diff -ru scponly-3aab916d89e5f8ead09367b916b7b2070d6fb7d3/configure.in scponly-patched/configure.in
+--- scponly-3aab916d89e5f8ead09367b916b7b2070d6fb7d3/configure.in	2011-12-12 21:44:31.000000000 -0800
++++ scponly-patched/configure.in	2016-02-23 18:10:55.808687424 -0800
+@@ -104,6 +104,17 @@
+               scponly_sftp_compat=1
+       ])
+ 
++AC_ARG_ENABLE([bbcp-compat],
++       AC_HELP_STRING([--enable-bbcp-compat], [enable bbcp compatibility]),
++       [
++               if test "x$enableval" != "xno"; then
++                       bbcp_compat=1
++                       AC_DEFINE([ENABLE_BBCP])
++               fi
++       ],[
++               echo dnl Defaults to off, must be turned on explicitly
++       ])
++
+ AC_ARG_ENABLE([winscp-compat],
+       AC_HELP_STRING([--enable-winscp-compat], [enable winscp (and scp) compatibility]),
+       [
+@@ -233,6 +244,13 @@
+ 	SCPONLY_PATH_PROG_DEFINE([PROG_RMDIR], [rmdir], [/bin:/usr/bin:/sbin:/usr/sbin])
+ fi
+ 
++#Add options for bbcp
++if test "x$enable_bbcp_compat" != "x"; then
++       AC_MSG_NOTICE([enabling bbcp compatability...])
++       SCPONLY_PATH_PROG_DEFINE([PROG_BBCP], [bbcp], [/bin:/usr/bin])
++       SCPONLY_PATH_PROG_DEFINE([PROG_PS], [ps], [/bin:/usr/bin])
++fi
++
+ dnl Check for binaries required by the WinSCP compatibility mode
+ dnl winscp-compat conditionals:
+ if test "x$enable_winscp_compat" != "xno"; then
+Only in scponly-patched/: configure.in.orig
+diff -ru scponly-3aab916d89e5f8ead09367b916b7b2070d6fb7d3/scponly.c scponly-patched/scponly.c
+--- scponly-3aab916d89e5f8ead09367b916b7b2070d6fb7d3/scponly.c	2011-12-12 21:44:31.000000000 -0800
++++ scponly-patched/scponly.c	2016-02-23 18:10:55.808687424 -0800
+@@ -69,6 +69,11 @@
+ 	{ PROG_RSYNC, 1 },
+ #endif /*ENABLE_RSYNC*/
+ 
++#ifdef ENABLE_BBCP
++       { PROG_BBCP, 1 },
++       { PROG_PS, 1 },
++#endif /*ENABLE_BBCP*/
++
+ #ifdef PASSWD_COMPAT
+ 	{ PROG_PASSWD, 1 },
+ #endif /*ENABLE_PASSWD*/
+@@ -765,6 +770,10 @@
+ 	if (exact_match(av[0],PROG_SCP))
+ 		av = expand_wildcards(av);
+ #endif
++#ifdef ENABLE_BBCP
++       if (exact_match(av[0],PROG_BBCP))
++               av = expand_wildcards(av);
++#endif
+ #endif
+ 
+ /*
+Only in scponly-patched/: scponly.c.orig
