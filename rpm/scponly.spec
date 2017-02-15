@@ -1,22 +1,23 @@
+%global commit0 b5536dca47a8ab8585eb8246c32f2a4f996b3013
+%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
+
 %if 0%{?rhel} <= 6
 %define _hardened_build 0
 %else
 %define _hardened_build 1
 %endif
 %global _default_patch_fuzz 2
-%global commit0 3aab916d89e5f8ead09367b916b7b2070d6fb7d3
-%global shortcommit0 %(c=%{commit0}; echo ${c:0:7}) 
+
 Summary: Restricted shell for ssh based file services
 Name: scponly
 Version: 4.8
-Release: 99%{?dist}
+Release: 4%{?dist}
 License: BSD
 Group: Applications/Internet
-URL: https://github.com/scponly/scponly
-Source: http://downloads.sf.net/scponly/scponly-%{version}.tgz
+URL: https://github.com/stanford-rc/scponly
+Source0:  https://github.com/stanford-rc/%{name}/archive/%{commit0}.tar.gz#/%{name}-%{shortcommit0}.tar.gz
 Patch0: scponly-install.patch
 Patch1: scponly-bbcp.patch
-Patch2: scponly-4.8-elif-gcc44.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n) 
 
 # Checks only for location of binaries
@@ -32,11 +33,7 @@ execution priviledges. Functionally, it is best described
 as a wrapper to the "tried and true" ssh suite of applications. 
 
 %prep
-#%setup -q -n %{name}-%{commit0}
-%setup -q 
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1
+%autosetup -n %{name}-%{commit0}
 
 %build
 # config.guess in tarball lacks ppc64
@@ -91,6 +88,11 @@ fi
 %config(noreplace) %{_sysconfdir}/scponly/*
 
 %changelog
+* Wed Feb 15 2017 Stephane Thiell <sthiell@stanford.edu> 4.8.1-4
+- Switch to GitHub Source0 (you can use spectool to download)
+- Remove already applied GCC 4.4 compilation patch
+- Use autosetup in %prep
+
 * Wed Feb 15 2017 Kilian Cavalotti <kilian@stanford.edu> 4.8.1-3
 - Re-enabled patch fuzziness
 - Added GCC 4.4 compilation patch
@@ -104,7 +106,7 @@ fi
 * Thu Jul 07 2016 Benjamin Lefoul <lef@fedoraproject.org> - 4.8-16
 - Rebuild for EPEL7, BZ 1120370.
 
-* Tue Feb 24 2016 Kilian Cavalotti <kilian@stanford.edu> 4.8.1-2
+* Wed Feb 24 2016 Kilian Cavalotti <kilian@stanford.edu> 4.8.1-2
 - Removed WinSCP compat option, which makes interactive SSH sessions hang
 
 * Tue Feb 23 2016 Kilian Cavalotti <kilian@stanford.edu> 4.8.1-1
