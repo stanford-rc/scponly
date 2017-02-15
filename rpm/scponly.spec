@@ -10,7 +10,7 @@
 
 Summary: Restricted shell for ssh based file services
 Name: scponly
-Version: 4.8
+Version: 4.8.1
 Release: 4%{?dist}
 License: BSD
 Group: Applications/Internet
